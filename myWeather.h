@@ -23,6 +23,7 @@ bool GetOpenWeatherJsonDoc(DynamicJsonDocument& doc) {
 
 	if (!checkWiFi()) connectWiFi();
 
+
 	client.stop();
 	http.end();
 	http.begin(client, OPENWEATHER_SRV, OPENWEATHER_PORT, uri);
@@ -30,7 +31,9 @@ bool GetOpenWeatherJsonDoc(DynamicJsonDocument& doc) {
 	int httpCode = http.GET();
 
 	if (httpCode != HTTP_CODE_OK) {
-		Serial.printf("GetWeather failed, error: %s", http.errorToString(httpCode).c_str());
+    /*		Serial.printf("GetWeather failed, error: %s", http.errorToString(httpCode).c_str());*/
+    
+    		Serial.printf("GetWeather failed, error: %s", uri.c_str());
 		client.stop();
 		http.end();
 		return false;
@@ -155,7 +158,7 @@ void drawIcon(M5EPD_Canvas& canvas1, int x, int y, const uint16_t* icon, int dx 
 
 /* Draw current weather information */
 void drawWeatherInfo(int x, int y, int dx, int dy) {
-	myWeather.setTextSize(36);
+	myWeather.setTextSize(fontSize);
 	myWeather.drawCentreString("Wetter", x + dx / 2, y + 5, 1);
 	myWeather.drawLine(x, y + 35, x + dx, y + 35, MYBLACK);
 
@@ -186,22 +189,22 @@ void drawWeatherInfo(int x, int y, int dx, int dy) {
 	//myWeather.drawCentreString(weather.hourlyMain[0], x + dx / 2, y + 110, 1);
 	myWeather.setTextArea(x + 4, y + 110, dx - 4, 70);
 	myWeather.setTextWrap(true);
-	myWeather.setTextSize(24);
+	myWeather.setTextSize(fontSize);
 	myWeather.print(weather.hourlyMain[0]);
 
 	myWeather.setTextDatum(TL_DATUM);
-	myWeather.setTextSize(36);
+	myWeather.setTextSize(fontSize);
 	myWeather.drawString(getFloatString(weather.hourlyMaxTemp[0], "  \u00b0C"), x + 30, y + 170, 1);
 	myWeather.drawString(getFloatString(weather.hourlyRain[0], " mm"), x + 30, y + 210, 1);
 }
 
 /* Draw the sun information with sunrise and sunset */
 void drawSunInfo(int x, int y, int dx, int dy) {
-	myWeather.setTextSize(36);
+	myWeather.setTextSize(fontSize);
 	myWeather.drawCentreString("Sonne", x + dx / 2, y + 5, 1);
 	myWeather.drawLine(x, y + 35, x + dx, y + 35, MYBLACK);
 
-	myWeather.setTextSize(36);
+	myWeather.setTextSize(fontSize);
 	drawIcon(myWeather, x + 25, y + 55, (uint16_t*)SUNRISE64x64);
 	myWeather.drawString(getHourMinString(weather.sunrise), x + 105, y + 80, 1);
 
@@ -234,7 +237,7 @@ void Arrow(int x, int y, int asize, float aangle, int pwidth, int plength) {
 void displayDisplayWindSection(int x, int y, float angle, float windspeed, int cradius) {
 	int dxo, dyo, dxi, dyi;
 
-	myWeather.setTextSize(24);
+	myWeather.setTextSize(fontSize);
 	myWeather.drawLine(0, 15, 0, y + cradius + 30, MYBLACK);
 	for (float a = 0; a < 360; a = a + 22.5) {
 		dxo = cradius * cos((a - 90) * PI / 180);
@@ -269,7 +272,7 @@ void displayDisplayWindSection(int x, int y, float angle, float windspeed, int c
 /* Draw the wind information part */
 void drawWindInfo(int x, int y, int dx, int dy)
 {
-	myWeather.setTextSize(36);
+	myWeather.setTextSize(fontSize);
 	myWeather.drawCentreString("Wind", x + dx / 2, y + 5, 1);
 	myWeather.drawLine(x, y + 35, x + dx, y + 35, MYBLACK);
 
@@ -281,18 +284,18 @@ void drawM5PaperInfo(int x, int y, int dx, int dy) {
 	char timeString[10];
 	char dateString[12];
 
-	myWeather.setTextSize(36);
+	myWeather.setTextSize(fontSize);
 	myWeather.drawCentreString("Innen", x + dx / 2, y + 5, 1);
 	myWeather.drawLine(x, y + 35, x + dx, y + 35, MYBLACK);
 
-	myWeather.setTextSize(36);
-	sprintf(timeString, "%02d:%02d", tm.tm_hour, tm.tm_min);
+	myWeather.setTextSize(fontSize);
+	sprintf(timeString, "%02d:%02d", timevar.tm_hour, timevar.tm_min);
 	myWeather.drawCentreString(timeString, x + dx / 2, y + 50, 1);
-	sprintf(dateString, "%02d.%02d.%04d", tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
+	sprintf(dateString, "%02d.%02d.%04d", timevar.tm_mday, timevar.tm_mon + 1, timevar.tm_year + 1900);
 	myWeather.drawCentreString(dateString, x + dx / 2, y + 90, 1);
-	myWeather.setTextSize(24);
+	myWeather.setTextSize(fontSize);
 
-	myWeather.setTextSize(36);
+	myWeather.setTextSize(fontSize);
 	myWeather.setTextDatum(TL_DATUM);
 	drawIcon(myWeather, x + 35, y + 140, (uint16_t*)TEMPERATURE64x64);
 	myWeather.drawString(String(sht30Temperatur) + " \u00b0C", x + 35, y + 210, 1);
@@ -309,7 +312,7 @@ void drawDaily(int x, int y, int dx, int dy, Weather& weather, int index) {
 	int    pop = weather.forecastPop[index];
 	String icon = weather.forecastIcon[index];
 
-	myWeather.setTextSize(24);
+	myWeather.setTextSize(fontSize);
 	if (weekday(time) == 1 || weekday(time) == 7) {
 		myWeather.setTextColor(MYBLACK, M5EPD_Canvas::G2);
 		myWeather.fillRect(x + 1, y + 1, dx - 1, 31, M5EPD_Canvas::G2);
@@ -358,7 +361,7 @@ void drawGraph(int x, int y, int dx, int dy, String title, int xMin, int xMax, i
 	int    iOldX = 0;
 	int    iOldY = 0;
 
-	myWeather.setTextSize(24);
+	myWeather.setTextSize(fontSize);
 	myWeather.drawCentreString(title, x + dx / 2, y + 10, 1);
 	myWeather.setTextSize(14);
 	myWeather.drawString(yMaxString, x + 5, graphY - 5);
@@ -439,7 +442,7 @@ void drawDualGraph(int x, int y, int dx, int dy, String title, int xMin, int xMa
 	int    iOldX = 0;
 	int    iOldY = 0;
 
-	myWeather.setTextSize(24);
+	myWeather.setTextSize(fontSize);
 	myWeather.drawCentreString(title, x + dx / 2, y + 10, 1);
 	myWeather.setTextSize(14);
 	myWeather.drawString(yMaxString, x + 5, graphY - 5);
@@ -515,7 +518,7 @@ void showWeather() {
 
 	myWeather.createCanvas(960, 540);
 	myWeather.fillCanvas(MYWHITE);
-	myWeather.setTextSize(24);
+	myWeather.setTextSize(fontSize);
 	myWeather.setTextColor(MYBLACK, MYWHITE);
 	myWeather.setTextDatum(TL_DATUM);
 
@@ -566,7 +569,7 @@ void showM5PaperInfo() {
 
 	myWeather.createCanvas(250, 251);
 
-	myWeather.setTextSize(24);
+	myWeather.setTextSize(fontSize);
 	myWeather.setTextColor(MYBLACK, MYWHITE);
 	myWeather.setTextDatum(TL_DATUM);
 
