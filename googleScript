@@ -1,0 +1,77 @@
+/**
+ *Muten86: This is a copy of google-Script example to read calendar entries. How to:
+ *1. Create Google Script Project
+ *2. Insert this Code
+ *3. Replace the XXX in the CalendarID with your own CalendarID
+ *
+ *
+ *Attention: This service makes provides a list of the upcoming 10 Calendar entries to a public Webservice.
+ *           Never publish confidential data with such a service!!!! 
+ *
+ * Lists 10 upcoming events in the user's calendar.
+ * @see https://developers.google.com/calendar/api/v3/reference/events/list
+ */
+function listUpcomingEvents() {
+  let outputText;
+  const calendarId = 'XXXXX';
+  // Add query parameters in optionalArgs
+  const optionalArgs = {
+    timeMin: (new Date()).toISOString(),
+    showDeleted: false,
+    singleEvents: true,
+    maxResults: 10,
+    orderBy: 'startTime'
+    // use other optional query parameter here as needed.
+  };
+  try {
+    // call Events.list method to list the calendar events using calendarId optional query parameter
+    const response = Calendar.Events.list(calendarId, optionalArgs);
+    const events = response.items;
+    
+    if (events.length === 0) {
+      console.log('No upcoming events found');
+      return;
+    }
+    // Print the calendar events
+    for (const event of events) {
+      let when = event.start.dateTime;
+      let end = event.end.dateTime;
+      if (!when) {
+        when = event.start.date;
+        end = event.end.date;
+      }
+      console.log('%s (%s)', event.summary, when);
+
+      
+      let startdate = new Date(getOffset( ( when,0,10 )));
+      let enddate = new Date(getOffset( ( end,0,10 )) );
+//outputText += startdate + '#' + getOffset( event.start.dateTime,11,19 ) + '#' + getOffset( event.end.dateTime,0,10) + '#' + getOffset( event.end.dateTime,11,19) + '#' + ( event.summary ?? '' )  + '#' + ( event.location ?? '' ) + '#' + ( event.colorId ?? '') + '\n' ;
+
+outputText += convertDate(when) + '#' + getOffset( event.start.dateTime,11,19 ) + '#' + convertDate( end) + '#' + getOffset( event.end.dateTime,11,19) + '#' + ( event.summary ?? '' )  + '#' + ( event.location ?? '' ) + '#' + ( event.colorId ?? '') + '\n' ;
+    }
+  } catch (err) {
+    // TODO (developer) - Handle exception from Calendar API
+   // console.log('Failed with error %s', err.message);
+    return 'Failed with error ' && err.message;
+  }
+  console.log(outputText);
+  return outputText;
+}
+
+function getOffset(calVal, start, end){
+try{
+  return calVal.substring(start,end);
+  } catch (err) {
+return '';
+}
+}
+function convertDate(dateString) {
+    var date = new Date(dateString);
+    return date.getDate()+"/"+(date.getMonth() + 1)+"/"+date.getFullYear();
+}
+
+function doGet() {
+  
+  return  ContentService.createTextOutput(listUpcomingEvents() ).setMimeType(ContentService.MimeType.JSON); 
+  
+}
