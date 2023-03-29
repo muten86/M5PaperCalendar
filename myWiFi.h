@@ -1,3 +1,5 @@
+
+
 // myWiFi.h
 
 // the functions for connecting to wifi and get the ntp time
@@ -42,7 +44,7 @@ boolean connectWiFi() {
 
 bool getTime() {                                                     // Zeitzone einstellen https://github.com/nayarsystems/posix_tz_db/blob/master/zones.csv
 	configTzTime("CET-1CEST,M3.5.0/02,M10.5.0/03", ntpServer[0]);    // deinen NTP Server einstellen (von 0 - 5 aus obiger Liste)
-	if (!getLocalTime(&tm)) return false;
+	if (!getLocalTime(&timevar)) return false;
 	return true;
 }
 
