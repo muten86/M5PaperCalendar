@@ -1,10 +1,12 @@
+
+
 /*********************************************************************
 
   Digital Calendar on M5Paper
   The M5PAPER is equipped with an e-ink screen with a resolution of 540*960 @ 4.7" and supports 16 levels of grayscale display.
                                Btn L/P/R
                                    |
-	 +-----------------------------°-------------------+
+	 +-----------------------------ï¿½-------------------+
 	 | 0/0   ePaper  960 x 540                         |
 	 |                                                 |
 	 |    16 levels grayscale                          |
@@ -75,8 +77,9 @@
 #include <TimeLib.h>
 
 #include <ArduinoJson.h>
+#include "soc/adc_channel.h"
 
-#include <Credentials.h>
+#include "Credentials.h"
 
  /***************************************************************************************
  **                          Define the globals and class instances
@@ -84,9 +87,9 @@
 
  // Network
  // SSID and password in credentials.h
-IPAddress ip(192, 168, 178, 235);                            // Static IP
-IPAddress gateway(192, 168, 178, 1);
-IPAddress dns(192, 168, 178, 1);
+IPAddress ip(192, 168, 0, 60);                            // Static IP
+IPAddress gateway(192, 168, 0, 1);
+IPAddress dns(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 
 #define HOSTNAME "M5PaperCalendarWeatherClock"
@@ -95,8 +98,10 @@ IPAddress subnet(255, 255, 255, 0);
 #define MYWHITE M5EPD_Canvas::G0	
 #define MYGREY  M5EPD_Canvas::G5
 
+const int fontSize = 2;
+
 // time and date vars
-struct tm tm;
+struct tm timevar;
 struct tm start;
 struct tm weatherTime;
 //rtc_time_t currentTime;
@@ -105,7 +110,7 @@ byte oldMinute = 65;
 byte oldDay = 0;
 byte oldHour = 25;
 
-const char* const PROGMEM ntpServer[] = { "fritz.box", "de.pool.ntp.org", "at.pool.ntp.org", "ch.pool.ntp.org", "ptbtime1.ptb.de", "europe.pool.ntp.org" };
+const char* const PROGMEM ntpServer[] = { "de.pool.ntp.org", "at.pool.ntp.org", "ch.pool.ntp.org", "ptbtime1.ptb.de", "europe.pool.ntp.org" };
 const char* const PROGMEM dayNames[] = { "Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag" };
 const char* const PROGMEM dayShortNamesDD[] = { "So", "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So" };
 const char* const PROGMEM dayShortNamesDDD[] = { "Son", "Mon", "Die", "Mit", "Don", "Fre", "Sam", "Son" };
@@ -187,6 +192,9 @@ byte page = 1;
 // the display 
 int maxX = 960;
 int maxY = 540;
+
+
+
 // calendar page
 M5EPD_Canvas sideBar(&M5.EPD);
 M5EPD_Canvas myClock(&M5.EPD);
@@ -251,13 +259,13 @@ void setup() {
 	// load the ArialRound ttf from SPIFFS
 	sideBar.loadFont("/ARLRDBD.TTF", SPIFFS);
 	// font sizes
-	sideBar.createRender(92);
-	sideBar.createRender(48);
-	sideBar.createRender(42);
-	sideBar.createRender(36);
-	sideBar.createRender(24);
-	sideBar.createRender(18);
-	sideBar.createRender(14);
+	sideBar.createRender(10);
+	sideBar.createRender(10);
+	sideBar.createRender(10);
+	sideBar.createRender(10);
+	sideBar.createRender(10);
+	sideBar.createRender(10);
+	sideBar.createRender(10);
 
 	// clear the screen
 	myToday.fillCanvas(MYWHITE);
@@ -273,7 +281,7 @@ void setup() {
 /////////////////////////// Loop ////////////////////////////////////////////////////////////////////////
 void loop() {
 
-	getLocalTime(&tm);
+	getLocalTime(&timevar);
 
 	M5.update();
 
@@ -296,7 +304,7 @@ void loop() {
 		showSideBar();
 		showClock();
 		events.fillCanvas(MYWHITE);
-		events.setTextSize(42);
+		events.setTextSize(fontSize);
 		events.setTextDatum(TL_DATUM);
 		events.drawString("Hole Kalender-Daten...", 100, 100);
 		events.pushCanvas(300, 0, UPDATE_MODE_GC16);
@@ -310,7 +318,7 @@ void loop() {
 		myWeather.pushCanvas(0, 0, UPDATE_MODE_GC16);
 		getSHT30Values();
 		myWeather.fillCanvas(MYWHITE);
-		myWeather.setTextSize(42);
+		myWeather.setTextSize(fontSize);
 		myWeather.setTextDatum(TL_DATUM);
 		myWeather.drawString("Hole Wetter-Daten...", 100, 100);
 		myWeather.pushCanvas(300, 0, UPDATE_MODE_GC16);
@@ -318,8 +326,8 @@ void loop() {
 		Serial.println(page);
 	}
 
-	if (tm.tm_min != oldMinute) {
-		oldMinute = tm.tm_min;
+	if (timevar.tm_min != oldMinute) {
+		oldMinute = timevar.tm_min;
 		if (page == 1) printTime();
 		if (page == 2) showClock();
 		if (page == 3) {
@@ -328,8 +336,8 @@ void loop() {
 		}
 	}
 
-	if (tm.tm_hour != oldHour) {
-		oldHour = tm.tm_hour;
+	if (timevar.tm_hour != oldHour) {
+		oldHour = timevar.tm_hour;
 		if (page == 1) {
 			getSHT30Values();
 			printWeather();
@@ -342,8 +350,8 @@ void loop() {
 		}
 	}
 
-	if (tm.tm_mday != oldDay) {
-		oldDay = tm.tm_mday;
+	if (timevar.tm_mday != oldDay) {
+		oldDay = timevar.tm_mday;
 		getTime();                   // sync the time with the timeserver every new day
 		if (page == 1) printDate();
 		if (page == 2) showSideBar();
@@ -353,6 +361,5 @@ void loop() {
 //////////////////// End Loop /////////////////////////////////////////////////////////////////////////////
 
 /*************************************( functions )****************************************/
-
 
 
