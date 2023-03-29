@@ -49,7 +49,7 @@ void miniCalendar() {
 
 	// add the days of the week
 	float col_width = (300 - 14 - 15) / 7;
-	sideBar.setTextSize(18);
+	sideBar.setTextSize(fontSize);
 	sideBar.setTextDatum(TC_DATUM);
 	for (byte r = 1; r < 8; r++) {
 		sideBar.drawString(dayShortNamesDD[r], 15 + (col_width * (r - 1)) + (col_width / 2), yOffset);
@@ -61,22 +61,22 @@ void miniCalendar() {
 
 	yOffset += 24;
 
-	int virtCurCount = getDaysInMonth(tm.tm_mon + 1, tm.tm_year + 1900);
-	int virt1wd = getDayOfWeek(tm.tm_year + 1900, tm.tm_mon + 1, 1);
+	int virtCurCount = getDaysInMonth(timevar.tm_mon + 1, timevar.tm_year + 1900);
+	int virt1wd = getDayOfWeek(timevar.tm_year + 1900, timevar.tm_mon + 1, 1);
 
 	if (virt1wd == 0) virt1wd = 7;                  // if first day of current month is sunday
 
-	sideBar.setTextSize(18);
+	sideBar.setTextSize(fontSize);
 
 	uint8_t virtMon[42];                            // create a virtual month with 42 days - 6 rows with 7 columns
 	for (int8_t i = 0; i < 42; i++) {
 		virtMon[i] = 0;
 	}
 
-	if (tm.tm_mon + 1 == 1) virtOldMM = 12;        // it's because January = 0 and December = 11
-	else virtOldMM = tm.tm_mon +1 - 1;
+	if (timevar.tm_mon + 1 == 1) virtOldMM = 12;        // it's because January = 0 and December = 11
+	else virtOldMM = timevar.tm_mon +1 - 1;
 
-	int virtOldCount = getDaysInMonth(virtOldMM, tm.tm_year + 1900);
+	int virtOldCount = getDaysInMonth(virtOldMM, timevar.tm_year + 1900);
 
 	// fill in the month before the current one
 	if (virt1wd == 1) {                             // first day of current month is monday
@@ -118,7 +118,7 @@ void miniCalendar() {
 
 			sideBar.setTextColor(fg, MYBLACK);
 
-			if ((pbID == 1) && (w == tm.tm_mday)) {
+			if ((pbID == 1) && (w == timevar.tm_mday)) {
 				fg = MYBLACK;
 				sideBar.fillCircle((15 + (col_width * (col - 1)) + (col_width / 2)), (yOffset + (30 * row) + 8), 16, MYWHITE);
 				sideBar.setTextColor(fg, MYWHITE);
@@ -133,33 +133,33 @@ void miniCalendar() {
 // build and show the calendar sidebar
 void showSideBar() {
 
-	getLocalTime(&tm);
+	getLocalTime(&timevar);
 
 	// Day, Weekday, Month and Year
 	char day[3];
-	sprintf(day, "%02d", tm.tm_mday);
-	const char* weekday = dayNames[tm.tm_wday];
-	const char* month = monthNames[tm.tm_mon + 1];
+	sprintf(day, "%02d", timevar.tm_mday);
+	const char* weekday = dayNames[timevar.tm_wday];
+	const char* month = monthNames[timevar.tm_mon + 1];
 
 	// black background white foreground
 	sideBar.fillCanvas(MYBLACK);
 	sideBar.setTextColor(MYWHITE, MYBLACK);
 
 	// weekday
-	sideBar.setTextSize(42);
+	sideBar.setTextSize(fontSize);
 	sideBar.setTextDatum(TC_DATUM);
 	sideBar.drawString(weekday, 150, 20);
 
 	// day
-	sideBar.setTextSize(92);
+	sideBar.setTextSize(fontSize);
 	sideBar.setTextDatum(TC_DATUM);
 	sideBar.drawString(day, 150, 75);
 
 	// month and year
-	sideBar.setTextSize(24);
+	sideBar.setTextSize(fontSize);
 	sideBar.setTextDatum(TC_DATUM);
 	char monthYear[20];
-	sprintf(monthYear, "%s %04d", month, tm.tm_year + 1900);
+	sprintf(monthYear, "%s %04d", month, timevar.tm_year + 1900);
 	sideBar.drawString(monthYear, 150, 170);
 
 	miniCalendar();
@@ -171,17 +171,17 @@ void showSideBar() {
 /* build and show a little clock*/
 void showClock() {
 
-	getLocalTime(&tm);
+	getLocalTime(&timevar);
 
 	char timeString[16];
-	sprintf(timeString, " %02d:%02d ", tm.tm_hour, tm.tm_min);
+	sprintf(timeString, " %02d:%02d ", timevar.tm_hour, timevar.tm_min);
 
 	myClock.fillCanvas(MYWHITE);
 	myClock.setTextColor(MYBLACK, MYWHITE);
-	myClock.setTextSize(48);
+	myClock.setTextSize(fontSize);
 	myClock.setTextDatum(TC_DATUM);
 	myClock.drawString(timeString, 90, 18);
-	myClock.setTextSize(18);
+	myClock.setTextSize(fontSize);
 	drawBattery(myClock, 250, 10);
 	drawRSSI(myClock, 250, 35);
 	myClock.drawString(calendarOK, 250, 60);
@@ -230,7 +230,7 @@ bool readCalendar() {
 
 	indexFrom = response.indexOf("#") + 1;
 
-	Serial.println(indexFrom);
+	Serial.println("Indexfrom: " + indexFrom);
 
 	// Fill calendarEntries with entries from the get-request
 	while (indexTo >= 0 && line < calEntryCount) {
@@ -283,7 +283,7 @@ bool readCalendar() {
 	}
 	//client.stop();
 	http.end();
-	Serial.println("Calendar read!");
+	Serial.println("Calendar readY!");
 	return true;
 }
 
@@ -292,16 +292,16 @@ int eventItem(int y, const char* description, const char* location, const char* 
 	int y_start = y;
 
 	// Events Description
-	events.setTextSize(36);
+	events.setTextSize(fontSize);
 	textEllipsis(events, 95, y + 15, (800 - 365), description);
 
 	// Event Start Time
-	events.setTextSize(24);
+	events.setTextSize(fontSize);
 	events.setTextDatum(TR_DATUM);
 	events.drawString(start, 650, y + 20 - 6);
 
 	if (String(end).length() > 0) {
-		events.setTextSize(18);
+		events.setTextSize(fontSize);
 		events.setTextDatum(TR_DATUM);
 		events.drawString(end, 650, y + 20 + 15);
 	}
@@ -309,7 +309,7 @@ int eventItem(int y, const char* description, const char* location, const char* 
 	if (String(location).length() > 0) {
 		// Event Location
 		y += 20;
-		events.setTextSize(24);
+		events.setTextSize(fontSize);
 		textEllipsis(events, 95, y + 25, (800 - 365), location);
 	}
 
@@ -326,14 +326,14 @@ int eventDate(int y, const char* day, const char* weekday) {
 
 	// Day
 	events.setTextColor(MYBLACK, MYWHITE);
-	events.setTextSize(36);
+	events.setTextSize(fontSize);
 	events.setTextDatum(TR_DATUM);
 	events.drawString(day, 75, y + 20);
 
 	// Weekday
 	y += 12;
 	events.setTextColor(MYBLACK, MYWHITE);
-	events.setTextSize(18);
+	events.setTextSize(fontSize);
 	events.setTextDatum(TR_DATUM);
 	events.drawString(weekday, 75, y + 20 + 20);
 
@@ -345,19 +345,21 @@ void eventList() {
 
 	rC = readCalendar();
 
-	Serial.println("Calendar OK? " + String(rC));
+	Serial.println("Calendar OKX? " + String(rC));
 	if (rC) calendarOK = "+";
 	else calendarOK = "-";
 
 	if (!rC) {
 		// Google calendar could not be read!!
+    	Serial.println("Error Calendar: " + String(rC));
 		return;
 	}
 
-	getLocalTime(&tm);
+	Serial.println("Calendar midstep ");
+	getLocalTime(&timevar);
 
 	events.fillCanvas(MYWHITE);
-	events.setTextSize(42);
+	events.setTextSize(fontSize);
 	events.setTextDatum(TL_DATUM);
 	events.setTextColor(MYBLACK, MYWHITE);
 
@@ -372,10 +374,11 @@ void eventList() {
 	bool isEmpty = true;
 	for (byte r = 0; r < 10; r++) {
 
-		checkDay = calEnt[r].calStartDate.substring(0, 2).toInt();
-		checkMonth = calEnt[r].calStartDate.substring(3, 5).toInt();
-		checkYear = calEnt[r].calStartDate.substring(6, 10).toInt();
+		checkDay = calEnt[r].calStartDate.substring(9, 10).toInt();
+		checkMonth = calEnt[r].calStartDate.substring(5, 6).toInt();
+		checkYear = calEnt[r].calStartDate.substring(0, 3).toInt();
 
+	Serial.println("Calendar date: " + String(checkDay) +String(checkMonth) +String(checkYear));
 		// Add new day
 		if (r == 0 || checkOldDay != checkDay) {
 
