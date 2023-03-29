@@ -3,10 +3,21 @@ Anzeige von Wetter und Kalender auf dem M5Paper.
 
 Auf dem M5Paper werden auf 3 Seiten folgende Infos angezeigt:
 1. Uhrzeit, Datum und ein paar Systeminfos
-2. Kalender: Datum, laufender Monat und die nächsten Termine. Die Termine werden vom Google Kalender abgefragt. Dazu ist ein separates Script erforderlich (stelle ich gelegentich hier ein)
+2. Kalender: Datum, laufender Monat und die nächsten Termine. Die Termine werden vom Google Kalender abgefragt. Dazu ist ein separates Script erforderlich (stelle ich gelegentich hier ein)(Comment Muten86: Script added)
 4. Wetter: Die Wetterdaten für meinen Wohnort, die Daten kommen von OpenWeatherMap.
 
+
+@updates in Muten86-Fork:
+- Google Script added
+- Adaptet Font-Size for M5Paper 1.1 (with global variable to control)
+- Adapted Header and Footer
+- optimized MyToday Page
+
+
+
+
 Sämtliche Passwörter, APP-Ids und URLs sind in Credentials nach folgendem Muster hinterlegt, Einbindung als Library:
+
 ```
 // My credentials
 
